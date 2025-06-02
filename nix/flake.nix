@@ -6,18 +6,9 @@
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     mac-app-util.url = "github:hraban/mac-app-util";
-    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
-    homebrew-core = {
-      url = "github:homebrew/homebrew-core";
-      flake = false;
-    }; 
-    homebrew-cask = {
-      url = "github:homebrew/homebrew-cask";
-      flake = false;
-    };
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs, mac-app-util, nix-homebrew, homebrew-core, homebrew-cask }:
+  outputs = inputs@{ self, nix-darwin, nixpkgs, mac-app-util }:
   let
     configuration = { pkgs, config, ... }: {
       # Allow non-opensource packages
@@ -42,12 +33,20 @@
 
       homebrew = {
         enable = true;
- 
-        casks = [];
 
-        onActivation.cleanup = "zap";
-        onActivation.autoUpdate = true;
-        onActivation.upgrade = true;
+        taps = [];
+
+        brews = [];
+
+        casks = [
+          "logitech-options"
+        ];
+
+        onActivation = {
+          cleanup = "zap";
+          autoUpdate = true;
+          upgrade = true;
+        };
       };
 
       # Necessary for using flakes on this system.
@@ -111,23 +110,6 @@
       modules = [ 
         configuration
         mac-app-util.darwinModules.default
-        nix-homebrew.darwinModules.nix-homebrew
-        {
-          nix-homebrew = {
-            enable = true;
-
-            user = "cdprice";
-
-            taps = {
-              "homebrew/homebrew-core" = homebrew-core;
-              "homebrew/homebrew-cask" = homebrew-cask;
-            };
-
-            mutableTaps = false;
-
-            autoMigrate = true;
-          };
-        }
       ];
     };
   };
