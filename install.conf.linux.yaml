@@ -1,0 +1,24 @@
+- defaults:
+  link:
+    relink: true
+
+- clean: ["~"]
+
+- link:
+    # Shell
+    ~/.bashrc: .bashrc
+    ~/.zshrc: .zshrc
+
+    # Nix (including darwin)
+    ~/.config/nix: nix
+
+    ~/.config/nushell:
+      create: true
+      path: nushell
+
+    ~/.config/starship.toml:
+      create: true
+      path: nushell/starship.toml
+
+- shell:
+    - [git submodule update --init --recursive, Installing submodules]
