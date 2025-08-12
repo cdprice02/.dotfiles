@@ -1,22 +1,24 @@
-- clean: ['~']
+- defaults:
+  link:
+    relink: true
+
+- clean: ["~"]
 
 - link:
-    # Shell configurations
+    # Shell
     ~/.bashrc: .bashrc
     ~/.zshrc: .zshrc
-    
-    # Nix configuration directory (includes Darwin config)
+
+    # Nix (including darwin)
     ~/.config/nix: nix
-    
-    # Nushell configuration (will be created later)
+
     ~/.config/nushell:
       create: true
-      path: config/nushell
-    
-    # Starship configuration (will be created later)  
+      path: nushell
+
     ~/.config/starship.toml:
       create: true
-      path: config/starship.toml
+      path: nushell/starship.toml
 
 - shell:
-  - [git submodule update --init --recursive, Installing submodules]
+    - [git submodule update --init --recursive, Installing submodules]

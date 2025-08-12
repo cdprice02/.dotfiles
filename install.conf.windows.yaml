@@ -1,19 +1,20 @@
-- clean: ['~']
+- defaults:
+  link:
+    relink: true
+
+- clean: ["~"]
 
 - link:
-    # Shell configurations
+    # Shell
     ~/.bashrc: .bashrc
-    ~/.zshrc: .zshrc
-    
-    # Nushell configuration (Windows paths)
+
     ~/AppData/Roaming/nushell:
       create: true
-      path: config/nushell
-    
-    # Starship configuration (Windows)
+      path: nushell
+
     ~/.config/starship.toml:
-      create: true  
-      path: config/starship.toml
+      create: true
+      path: nushell/starship.toml
 
 - shell:
-  - [git submodule update --init --recursive, Installing submodules]
+    - [git submodule update --init --recursive, Installing submodules]
