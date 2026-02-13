@@ -69,18 +69,16 @@ diverged = '⇕⇡${ahead_count}⇣${behind_count}'
 behind = '⇣${count}'
 
 [hostname]
-# disabled = false
 ssh_only = false
 format = '[@](black)([$ssh_symbol]($style))[$hostname](bold blue) '
 
 [os]
-# disabled = false
+disabled = false
 
 [package]
 format = '[$symbol$version]($style) '
 
 [username]
-# disabled = false
 format = '[$user]($style)'
 show_always = true
 
