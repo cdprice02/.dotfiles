@@ -1,0 +1,21 @@
+Host *
+    CheckHostIP yes
+
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+
+# Remote HPC / login nodes
+# Add RemoteForward to make Obsidian available over SSH.
+# Requires: Obsidian + Local REST API plugin running locally on port 27123.
+#
+# Template — uncomment and fill in real hostnames:
+#
+# Host <hostname>
+#     HostName <hostname.example.com>
+#     User <username>
+#     GSSAPIAuthentication yes
+#     ForwardX11 yes
+#     RemoteForward 27123 localhost:27123

@@ -20,5 +20,22 @@
       create: true
       path: nushell/starship.toml
 
+    # SSH config (hostnames, forwarding rules — no keys)
+    ~/.ssh/config:
+      create: true
+      path: ssh/config
+
 - shell:
     - [git submodule update --init --recursive, Installing submodules]
+
+    - description: Clone Claude Code config
+      command: >
+        [ -d ~/.claude/.git ] &&
+        (cd ~/.claude && git pull --ff-only) ||
+        git clone git@github.com:cdprice02/claude-config.git ~/.claude
+
+    - description: Clone Copilot config
+      command: >
+        [ -d ~/.config/copilot/.git ] &&
+        (cd ~/.config/copilot && git pull --ff-only) ||
+        git clone git@github.com:cdprice02/copilot-config.git ~/.config/copilot
