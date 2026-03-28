@@ -32,6 +32,6 @@
 
     - description: Clone Copilot config
       command: >
-        [ -d ~/.config/copilot/.git ] &&
-        (cd ~/.config/copilot && git pull --ff-only) ||
-        git clone git@github.com:cdprice02/copilot-config.git ~/.config/copilot
+        [ -d ~/.copilot/.git ] &&
+        (cd ~/.copilot && git pull --ff-only) ||
+        git clone git@github.com:cdprice02/copilot-config.git ~/.copilot
