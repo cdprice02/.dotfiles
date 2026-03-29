@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 # install-minimal.sh — bootstrap without Nix (work/corporate machines)
+# Sets up shell and SSH config only.
 # Assumes: git is available, SSH key is set up for github.com
 # Does NOT require: nix, sudo
 set -euo pipefail
 
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-echo "==> Initializing submodules..."
-git -C "${BASEDIR}" submodule update --init --recursive
 
 echo "==> Creating symlinks..."
 
@@ -21,20 +19,21 @@ symlink() {
   echo "  $dst -> $src"
 }
 
-symlink "${BASEDIR}/claude"      "${HOME}/.claude"
-symlink "${BASEDIR}/copilot"     "${HOME}/.copilot"
+symlink "${BASEDIR}/.bashrc"    "${HOME}/.bashrc"
 mkdir -p "${HOME}/.ssh"
-symlink "${BASEDIR}/ssh/config"  "${HOME}/.ssh/config"
-symlink "${BASEDIR}/.bashrc"     "${HOME}/.bashrc"
+symlink "${BASEDIR}/ssh/config" "${HOME}/.ssh/config"
 
 echo ""
 echo "==> Done."
 echo ""
-echo "Next steps:"
-echo "  1. Copy ~/.claude/profiles/work/settings.local.json.example"
-echo "     to ~/.claude/settings.local.json and fill in credentials."
-echo "  2. Create ~/.claude/.env.local with machine-specific secrets."
+echo "To set up Claude Code config:"
+echo "  git clone git@github.com:cdprice02/claude-config ~/.claude"
+echo "  cp ~/.claude/profiles/work/settings.local.json.example ~/.claude/settings.local.json"
+echo "  cp ~/.claude/profiles/work/CLAUDE.work.md ~/.claude/CLAUDE.local.md"
+echo "  # Fill in ~/.claude/settings.local.json and create ~/.claude/.env.local"
 echo ""
-echo "To sync config later:"
-echo "  git -C ~/.dotfiles pull --recurse-submodules"
-echo "  git -C ~/.dotfiles submodule update --remote --merge"
+echo "To set up Copilot config:"
+echo "  git clone git@github.com:cdprice02/copilot-config ~/.copilot"
+echo ""
+echo "To sync dotfiles later:"
+echo "  git -C ~/.dotfiles pull"

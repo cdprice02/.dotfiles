@@ -62,15 +62,10 @@ in
 
   # Symlinks to mutable, git-tracked config dirs outside the Nix store.
   # mkOutOfStoreSymlink keeps these writable for git operations.
+  # Note: ~/.claude and ~/.copilot are NOT managed here — clone independently:
+  #   git clone git@github.com:cdprice02/claude-config ~/.claude
+  #   git clone git@github.com:cdprice02/copilot-config ~/.copilot
   home.file = {
-    ".claude" = {
-      source = config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/.dotfiles/claude";
-    };
-    ".copilot" = {
-      source = config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/.dotfiles/copilot";
-    };
     ".config/nushell" = {
       source = config.lib.file.mkOutOfStoreSymlink
         "${config.home.homeDirectory}/.dotfiles/nushell";
@@ -108,9 +103,9 @@ in
 
     shellAliases = {
       dotfiles      = "git -C ~/.dotfiles";
-      dotfiles-sync = "git -C ~/.dotfiles pull --recurse-submodules && git -C ~/.dotfiles submodule update --remote --merge";
-      nix-up        = "nix flake update --flake ~/.dotfiles";
-      nix-rb        = "sudo darwin-rebuild switch --flake ~/.dotfiles";
+      dotfiles-sync = "git -C ~/.dotfiles pull";
+      nix-up        = "nix flake update --flake ~/.dotfiles/nix";
+      nix-rb        = "sudo darwin-rebuild switch --flake ~/.dotfiles/nix";
     };
 
     initContent = ''
@@ -131,9 +126,9 @@ in
 
     shellAliases = {
       dotfiles      = "git -C ~/.dotfiles";
-      dotfiles-sync = "git -C ~/.dotfiles pull --recurse-submodules && git -C ~/.dotfiles submodule update --remote --merge";
-      nix-up        = "nix flake update --flake ~/.dotfiles";
-      nix-rb        = "sudo darwin-rebuild switch --flake ~/.dotfiles";
+      dotfiles-sync = "git -C ~/.dotfiles pull";
+      nix-up        = "nix flake update --flake ~/.dotfiles/nix";
+      nix-rb        = "sudo darwin-rebuild switch --flake ~/.dotfiles/nix";
     };
 
     interactiveShellInit = ''
