@@ -60,6 +60,27 @@ in
       cargo-audit
     ];
 
+  # Symlinks to mutable, git-tracked config dirs outside the Nix store.
+  # mkOutOfStoreSymlink keeps these writable for git operations.
+  home.file = {
+    ".claude" = {
+      source = config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/.dotfiles/claude";
+    };
+    ".copilot" = {
+      source = config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/.dotfiles/copilot";
+    };
+    ".config/nushell" = {
+      source = config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/.dotfiles/nushell";
+    };
+    ".ssh/config" = {
+      source = config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/.dotfiles/ssh/config";
+    };
+  };
+
   # Run rustup setup directly during Home Manager activation
   home.activation.rustup = lib.hm.dag.entryAfter ["writeBoundary"] ''
     $DRY_RUN_CMD ${pkgs.rustup}/bin/rustup toolchain install stable > /dev/null 2>&1
@@ -86,10 +107,10 @@ in
     enableCompletion = true;
 
     shellAliases = {
-      dotfiles = "/usr/bin/git --git-dir=~/.dotfiles/ --work-tree=~";
-      dotfiles-sync = "dotfiles pull && dotfiles submodule update --remote --merge";
-      nix-up = "nix flake update --flake ~/nix/darwin";
-      nix-rb = "sudo darwin-rebuild switch --flake ~/nix/darwin";
+      dotfiles      = "git -C ~/.dotfiles";
+      dotfiles-sync = "git -C ~/.dotfiles pull --recurse-submodules && git -C ~/.dotfiles submodule update --remote --merge";
+      nix-up        = "nix flake update --flake ~/.dotfiles";
+      nix-rb        = "sudo darwin-rebuild switch --flake ~/.dotfiles";
     };
 
     initContent = ''
@@ -109,10 +130,10 @@ in
     enable = true;
 
     shellAliases = {
-      dotfiles = "/usr/bin/git --git-dir=~/.dotfiles/ --work-tree=~";
-      dotfiles-sync = "dotfiles pull && dotfiles submodule update --remote --merge";
-      nix-up = "nix flake update --flake ~/nix/darwin";
-      nix-rb = "sudo darwin-rebuild switch --flake ~/nix/darwin";
+      dotfiles      = "git -C ~/.dotfiles";
+      dotfiles-sync = "git -C ~/.dotfiles pull --recurse-submodules && git -C ~/.dotfiles submodule update --remote --merge";
+      nix-up        = "nix flake update --flake ~/.dotfiles";
+      nix-rb        = "sudo darwin-rebuild switch --flake ~/.dotfiles";
     };
 
     interactiveShellInit = ''

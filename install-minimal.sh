@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# install-minimal.sh — bootstrap without dotbot (work/corporate machines)
+# install-minimal.sh — bootstrap without Nix (work/corporate machines)
 # Assumes: git is available, SSH key is set up for github.com
-# Does NOT require: nix, dotbot, sudo
+# Does NOT require: nix, sudo
 set -euo pipefail
 
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "==> Initializing submodules..."
-git --git-dir="${HOME}/.dotfiles" --work-tree="${HOME}" \
-  submodule update --init --recursive
+git -C "${BASEDIR}" submodule update --init --recursive
 
 echo "==> Creating symlinks..."
 
@@ -37,5 +36,5 @@ echo "     to ~/.claude/settings.local.json and fill in credentials."
 echo "  2. Create ~/.claude/.env.local with machine-specific secrets."
 echo ""
 echo "To sync config later:"
-echo "  git --git-dir=~/.dotfiles --work-tree=~ pull"
-echo "  git --git-dir=~/.dotfiles --work-tree=~ submodule update --remote --merge"
+echo "  git -C ~/.dotfiles pull --recurse-submodules"
+echo "  git -C ~/.dotfiles submodule update --remote --merge"

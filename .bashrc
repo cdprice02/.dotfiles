@@ -1,5 +1,5 @@
-alias dotfiles='/usr/bin/git --git-dir=/Users/cdprice/.dotfiles/ --work-tree=/Users/cdprice'
-alias dotfiles-sync='dotfiles pull && dotfiles submodule update --remote --merge'
+alias dotfiles='git -C ~/.dotfiles'
+alias dotfiles-sync='git -C ~/.dotfiles pull --recurse-submodules && git -C ~/.dotfiles submodule update --remote --merge'
 
 # Source machine-local environment variables (not tracked)
 if [[ -f "$HOME/.claude/.env.local" ]]; then
