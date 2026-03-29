@@ -87,6 +87,7 @@ in
 
     shellAliases = {
       dotfiles = "/usr/bin/git --git-dir=~/.dotfiles/ --work-tree=~";
+      dotfiles-sync = "dotfiles pull && dotfiles submodule update --remote --merge";
       nix-up = "nix flake update --flake ~/nix/darwin";
       nix-rb = "sudo darwin-rebuild switch --flake ~/nix/darwin";
     };
@@ -109,6 +110,7 @@ in
 
     shellAliases = {
       dotfiles = "/usr/bin/git --git-dir=~/.dotfiles/ --work-tree=~";
+      dotfiles-sync = "dotfiles pull && dotfiles submodule update --remote --merge";
       nix-up = "nix flake update --flake ~/nix/darwin";
       nix-rb = "sudo darwin-rebuild switch --flake ~/nix/darwin";
     };

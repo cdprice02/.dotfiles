@@ -24,17 +24,13 @@
       create: true
       path: ssh/config
 
+    # AI tool config — managed as dotfiles submodules
+    ~/.claude:
+      path: claude
+      relink: true
+    ~/.copilot:
+      path: copilot
+      relink: true
+
 - shell:
     - [git submodule update --init --recursive, Installing submodules]
-
-    - description: Clone Claude Code config
-      command: >
-        [ -d ~/.claude/.git ] &&
-        (cd ~/.claude && git pull --ff-only) ||
-        git clone git@github.com:cdprice02/claude-config.git ~/.claude
-
-    - description: Clone Copilot config
-      command: >
-        [ -d ~/.copilot/.git ] &&
-        (cd ~/.copilot && git pull --ff-only) ||
-        git clone git@github.com:cdprice02/copilot-config.git ~/.copilot
