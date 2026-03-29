@@ -49,6 +49,9 @@ in
       gh
       python3Minimal
       qmkPackage
+      nodejs
+      uv
+      bun
 
       # Rust toolchain manager
       rustup
