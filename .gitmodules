@@ -1,9 +1,6 @@
 [submodule "dotbot"]
 	path = dotbot
 	url = https://github.com/anishathalye/dotbot
-[submodule ".claude/claude"]
-	path = .claude/claude
-	url = git@github.com:cdprice02/claude-config.git
 [submodule "claude"]
 	path = claude
 	url = git@github.com:cdprice02/claude-config.git
