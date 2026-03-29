@@ -1,13 +1,16 @@
 - defaults:
-  link:
-    relink: true
+    link:
+      relink: true
 
 - clean: ["~"]
 
-- link:
-    # Shell
-    ~/.bashrc: .bashrc
+- shell:
+    - description: Initialize submodules (bare repo)
+      command: >
+        GIT_DIR="$HOME/.dotfiles" GIT_WORK_TREE="$HOME"
+        git submodule update --init --recursive
 
+- link:
     # Nix (including darwin)
     ~/.config/nix: nix
 
@@ -31,6 +34,3 @@
     ~/.copilot:
       path: copilot
       relink: true
-
-- shell:
-    - [git submodule update --init --recursive, Installing submodules]

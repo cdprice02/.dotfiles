@@ -1,13 +1,16 @@
 - defaults:
-  link:
-    relink: true
+    link:
+      relink: true
 
 - clean: ["~"]
 
-- link:
-    # Shell
-    ~/.bashrc: .bashrc
+- shell:
+    - description: Initialize submodules (bare repo)
+      command: >
+        GIT_DIR="$HOME/.dotfiles" GIT_WORK_TREE="$HOME"
+        git submodule update --init --recursive
 
+- link:
     ~/AppData/Roaming/nushell:
       create: true
       path: nushell
@@ -28,6 +31,3 @@
     ~/.copilot:
       path: copilot
       relink: true
-
-- shell:
-    - [git submodule update --init --recursive, Installing submodules]

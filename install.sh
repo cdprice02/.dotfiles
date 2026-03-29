@@ -11,7 +11,9 @@ BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${BASEDIR}"
 
 # Initialize submodules if not already done
-git submodule update --init --recursive "${DOTBOT_DIR}"
+# Use the bare repo layout: GIT_DIR=~/.dotfiles, GIT_WORK_TREE=~
+GIT_DIR="${HOME}/.dotfiles" GIT_WORK_TREE="${HOME}" \
+  git submodule update --init --recursive
 
 # Detect OS and set appropriate config
 case "$(uname -s)" in
