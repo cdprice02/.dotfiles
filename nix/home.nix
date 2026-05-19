@@ -1,6 +1,10 @@
 { config, pkgs, lib, system, username, ... }:
 
 let
+  home = config.home.homeDirectory;
+
+  mkOutOfStoreSymlink = config.lib.file.mkOutOfStoreSymlink;
+
   # Pinned QMK on x86_64 systems
   qmkPackage =
     if lib.strings.hasPrefix "x86_64" system then
@@ -17,6 +21,32 @@ let
       [ "x86_64-apple-darwin" "aarch64-apple-darwin" ]
     else
       [ "x86_64-unknown-linux-gnu" "aarch64-unknown-linux-gnu" ];
+
+  # Shared shell aliases across bash, zsh, fish
+  commonAliases = {
+    dotfiles      = "git -C ~/.dotfiles";
+    dotfiles-sync = "git -C ~/.dotfiles pull";
+    nix-up        = "nix flake update --flake ~/.dotfiles/nix";
+    nix-rb        = "sudo darwin-rebuild switch --flake ~/.dotfiles/nix";
+  };
+
+  # POSIX-compatible init snippets shared by bash and zsh
+  nixDaemonInit = ''
+    if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+      . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+    fi
+  '';
+
+  envLocalInit = ''
+    if [ -f "$HOME/.claude/.env.local" ]; then
+      source "$HOME/.claude/.env.local"
+    fi
+  '';
+
+  gitaliasFile = pkgs.fetchurl {
+    url = "https://raw.githubusercontent.com/GitAlias/gitalias/main/gitalias.txt";
+    sha256 = "00hy0vhgvzqxh81szcwwkh2vapkimp7hp6cfccsymhd404kkgh0h";
+  };
 in
 {
   home.username = username;
@@ -27,7 +57,6 @@ in
       "/home/${username}"
   );
 
-  # Shell session variables to ensure proper PATH
   home.sessionVariables = {
     EDITOR = "vim";
   };
@@ -36,50 +65,56 @@ in
     "$HOME/.cargo/bin"
   ];
 
-  home.packages =
-    with pkgs; [
-      # Fonts
-      fira-code
-      nerd-fonts.fira-code
+  home.packages = with pkgs; [
+    # Fonts
+    fira-code
+    nerd-fonts.fira-code
 
-      # Applications
-      obsidian
+    # Applications
+    obsidian
 
-      # Simple dev tools
-      gh
-      python3Minimal
-      qmkPackage
-      nodejs
-      uv
-      bun
+    # Dev tools
+    gh
+    python3
+    nodejs
+    uv
+    bun
+    qmkPackage
 
-      # Rust toolchain manager
-      rustup
+    # Rust toolchain manager + cargo tools
+    rustup
+    cargo-edit
+    cargo-watch
+    cargo-expand
+    cargo-audit
 
-      # Additional Rust development tools (from Nix for reliability)
-      cargo-edit
-      cargo-watch
-      cargo-expand
-      cargo-audit
-    ];
+    # Node version management
+    fnm
+
+    # CLI essentials
+    jq
+    neofetch
+    ripgrep
+    fd
+    bat
+    eza
+    delta
+    lazygit
+    git-lfs
+    wget
+    btop
+  ];
 
   # Symlinks to mutable, git-tracked config dirs outside the Nix store.
-  # mkOutOfStoreSymlink keeps these writable for git operations.
   # Note: ~/.claude and ~/.copilot are NOT managed here — clone independently:
   #   git clone git@github.com:cdprice02/claude-config ~/.claude
   #   git clone git@github.com:cdprice02/copilot-config ~/.copilot
   home.file = {
-    ".config/nushell" = {
-      source = config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/.dotfiles/nushell";
-    };
-    ".ssh/config" = {
-      source = config.lib.file.mkOutOfStoreSymlink
-        "${config.home.homeDirectory}/.dotfiles/ssh/config";
-    };
+    ".config/nushell".source = mkOutOfStoreSymlink "${home}/.dotfiles/config/nushell";
+    ".ssh/config".source     = mkOutOfStoreSymlink "${home}/.dotfiles/config/ssh/config";
+    ".config/starship.toml".source = mkOutOfStoreSymlink "${home}/.dotfiles/config/nushell/starship.toml";
   };
 
-  # Run rustup setup directly during Home Manager activation
   home.activation.rustup = lib.hm.dag.entryAfter ["writeBoundary"] ''
     $DRY_RUN_CMD ${pkgs.rustup}/bin/rustup toolchain install stable > /dev/null 2>&1
     $DRY_RUN_CMD ${pkgs.rustup}/bin/rustup toolchain install beta > /dev/null 2>&1
@@ -99,55 +134,42 @@ in
     ''}
   '';
 
-  # Configure shells
+  # Shells — all three configured consistently with shared aliases and tool integrations.
+  # programs.direnv, zoxide, atuin, fzf, starship inject their init automatically.
+
+  programs.bash = {
+    enable = true;
+    enableCompletion = true;
+    shellAliases = commonAliases;
+    initExtra = nixDaemonInit + envLocalInit;
+  };
+
   programs.zsh = {
     enable = true;
     enableCompletion = true;
-
-    shellAliases = {
-      dotfiles      = "git -C ~/.dotfiles";
-      dotfiles-sync = "git -C ~/.dotfiles pull";
-      nix-up        = "nix flake update --flake ~/.dotfiles/nix";
-      nix-rb        = "sudo darwin-rebuild switch --flake ~/.dotfiles/nix";
-    };
-
-    initContent = ''
-      # Source the nix-daemon profile
-      if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
-        . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
-      fi
-
-      # Source machine-local environment variables (not tracked)
-      if [ -f "$HOME/.claude/.env.local" ]; then
-        source "$HOME/.claude/.env.local"
-      fi
+    shellAliases = commonAliases;
+    initContent = nixDaemonInit + envLocalInit + ''
+      eval "$(fnm env --use-on-cd)"
     '';
   };
 
   programs.fish = {
     enable = true;
-
-    shellAliases = {
-      dotfiles      = "git -C ~/.dotfiles";
-      dotfiles-sync = "git -C ~/.dotfiles pull";
-      nix-up        = "nix flake update --flake ~/.dotfiles/nix";
-      nix-rb        = "sudo darwin-rebuild switch --flake ~/.dotfiles/nix";
-    };
+    shellAliases = commonAliases;
 
     interactiveShellInit = ''
-      # Source the nix-daemon profile
       if test -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
         bass source '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
       end
 
-      # Source machine-local environment variables (not tracked)
       if test -f "$HOME/.claude/.env.local"
         source "$HOME/.claude/.env.local"
       end
+
+      fnm env --use-on-cd | source
     '';
 
     plugins = [
-      # Enable bass plugin for sourcing bash scripts
       {
         name = "bass";
         src = pkgs.fetchFromGitHub {
@@ -160,7 +182,45 @@ in
     ];
   };
 
-  # Terminal configuration
+  # Prompt
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    enableFishIntegration = true;
+    enableBashIntegration = true;
+  };
+
+  # Per-directory environment variables with nix flake shell support
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
+
+  # Smart cd
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+    enableFishIntegration = true;
+    enableBashIntegration = true;
+  };
+
+  # Shell history with sync
+  programs.atuin = {
+    enable = true;
+    enableZshIntegration = true;
+    enableFishIntegration = true;
+    enableBashIntegration = true;
+  };
+
+  # Fuzzy finder with shell integrations
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+    enableFishIntegration = true;
+    enableBashIntegration = true;
+  };
+
+  # Terminal
   programs.alacritty = {
     enable = true;
     settings = {
@@ -181,7 +241,7 @@ in
     };
   };
 
-  # Editor configuration
+  # Editor
   programs.vim = {
     enable = true;
     defaultEditor = true;
@@ -200,16 +260,21 @@ in
     '';
   };
 
-  # VS Code configuration
+  # VS Code — binary managed by Nix; extensions and settings via GitHub Settings Sync.
+  # No userSettings declared here: Settings Sync owns settings.json.
   programs.vscode = {
     enable = true;
   };
 
-  # Git configuration
+  # Git
   programs.git = {
     enable = true;
     userName = "cdprice02";
     userEmail = "cdprice02@gmail.com";
+
+    includes = [
+      { path = "${gitaliasFile}"; }
+    ];
 
     extraConfig = {
       init.defaultBranch = "main";
@@ -217,27 +282,15 @@ in
       push.default = "simple";
       push.autoSetupRemote = true;
       core.autocrlf = "input";
+      core.excludesFile = "${home}/.dotfiles/config/git/ignore";
       credential.helper = "osxkeychain";
 
-      # Better diff and merge tools
       diff.tool = "vscode";
       merge.tool = "vscode";
       difftool."vscode".cmd = "code --wait --diff $LOCAL $REMOTE";
       mergetool."vscode".cmd = "code --wait $MERGED";
     };
 
-    aliases = {
-      st = "status";
-      co = "checkout";
-      br = "branch";
-      ci = "commit";
-      ca = "commit -a";
-      ps = "push";
-      pl = "pull";
-      lg = "log --oneline --graph --decorate --all";
-      unstage = "reset HEAD --";
-      last = "log -1 HEAD";
-    };
   };
 
   home.stateVersion = "23.11";

@@ -1,0 +1,14 @@
+.DS_Store
+.env
+.env.local
+*.pyc
+__pycache__/
+.direnv/
+.venv/
+target/
+node_modules/
+.idea/
+.vscode/
+*.swp
+*.swo
+.ipynb_checkpoints/

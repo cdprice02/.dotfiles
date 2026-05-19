@@ -48,5 +48,21 @@
     screensaver.askForPasswordDelay = 10;
   };
 
+  homebrew = {
+    enable = true;
+    onActivation = {
+      autoUpdate = true;
+      upgrade = true;
+      cleanup = "zap";
+    };
+    brews = [
+      "screenresolution"
+    ];
+    casks = [
+      "logitech-options"
+      "copilot-cli@prerelease"
+    ];
+  };
+
   system.stateVersion = 6;
 }

@@ -78,5 +78,18 @@
             (system: mkNixosConfig system);
         in configs // {
         };
+
+      # Standalone home-manager for non-NixOS Linux (Ubuntu, WSL2, etc.)
+      # Bootstrap: nix run home-manager -- switch --flake ~/.dotfiles/nix
+      homeConfigurations = nixpkgs.lib.genAttrs
+        [ "x86_64-linux" "aarch64-linux" ]
+        (system: home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${system};
+          extraSpecialArgs = mkSpecialArgs system;
+          modules = [
+            ./home.nix
+            { nixpkgs.config = pkgsConfig; }
+          ];
+        });
     };
 }

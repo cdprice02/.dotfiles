@@ -4,69 +4,76 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-Personal dotfiles. Manages Nix configuration for any Nix-capable machine (Mac via nix-darwin, Linux via NixOS) and minimal shell/SSH bootstrap for machines without Nix.
+Personal dotfiles. Nix is the only path — no fallback scripts. Supports macOS (nix-darwin), NixOS, and any Linux/WSL2 via standalone Home Manager.
 
 Claude Code and Copilot configs live in **separate repos**, cloned independently when needed.
 
 ## Repo Layout
 
 ```
-nix/                  # All Nix configuration
-  flake.nix           # Entry point — declares inputs, wires Darwin/NixOS configs
-  home.nix            # Home Manager: packages, shells, editor, git, symlinks
-  darwin-configuration.nix   # macOS system settings (Touch ID, Dock, Finder, etc.)
-  nixos-configuration.nix    # NixOS system settings
-nushell/              # Nushell shell config (config.nu, env.nu)
-ssh/                  # SSH config
-  config
-.bashrc               # Minimal bash setup (aliases, .env.local sourcing)
-install-minimal.sh    # Bootstrap for non-Nix machines
+nix/
+  flake.nix                    # Entry point — inputs, Darwin/NixOS/homeConfigurations outputs
+  home.nix                     # Home Manager: packages, shells (bash/zsh/fish), programs, git
+  darwin-configuration.nix     # macOS system settings + Homebrew module
+  nixos-configuration.nix      # NixOS system settings
+config/
+  nushell/                     # Nushell config (config.nu, env.nu) + starship.toml
+  ssh/                         # SSH config
+  git/                         # Global gitignore, gitalias.txt (GitAlias project)
+  powershell/                  # Windows PowerShell profile
 ```
 
 ## Key Commands
 
 | Task | Command |
 |------|---------|
-| Apply Nix config (Mac) | `sudo darwin-rebuild switch --flake ~/.dotfiles/nix` (`nix-rb` alias) |
-| Apply Nix config (NixOS) | `sudo nixos-rebuild switch --flake ~/.dotfiles/nix` |
-| Update flake inputs | `nix flake update --flake ~/.dotfiles/nix` (`nix-up` alias) |
-| Sync dotfiles | `git -C ~/.dotfiles pull` (`dotfiles-sync` alias) |
-| Bootstrap non-Nix machine | `./install-minimal.sh` |
+| Apply config (Mac) | `sudo darwin-rebuild switch --flake ~/.dotfiles/nix` (`nix-rb`) |
+| Apply config (NixOS) | `sudo nixos-rebuild switch --flake ~/.dotfiles/nix` |
+| Apply config (Linux/WSL) | `home-manager switch --flake ~/.dotfiles/nix` |
+| Update flake inputs | `nix flake update --flake ~/.dotfiles/nix` (`nix-up`) |
+| Sync dotfiles | `git -C ~/.dotfiles pull` (`dotfiles-sync`) |
 
 ## Architecture
 
-### Nix path (`nix/`)
+### `nix/flake.nix`
 
-- **`flake.nix`** — Entry point. Declares `nixpkgs`, `nix-darwin`, `home-manager` inputs. Produces `darwinConfigurations` (Mac) and `nixosConfigurations` (Linux). All `import` paths are relative within `nix/`.
-- **`darwin-configuration.nix`** — macOS system-level settings: Touch ID sudo, keyboard repeat, Dock, Finder defaults, enabled shells.
-- **`nixos-configuration.nix`** — Linux system-level settings: user, enabled shells.
-- **`home.nix`** — User config via Home Manager: packages (obsidian, gh, rustup, etc.), shell setup (fish, zsh), git, Alacritty, VS Code, and `mkOutOfStoreSymlink` entries for nushell and SSH config.
+Declares `nixpkgs`, `nix-darwin`, `home-manager` inputs. Produces three output types:
+- `darwinConfigurations` — macOS machines (nix-darwin + home-manager)
+- `nixosConfigurations` — NixOS machines
+- `homeConfigurations` — standalone home-manager for any Linux/WSL2
 
-### Non-Nix path (`install-minimal.sh`)
+### `nix/home.nix`
 
-Creates `.bashrc` and `~/.ssh/config` symlinks. That's it. Prints instructions for cloning claude/copilot repos separately.
+User config shared across all platforms. Includes:
+- **Packages**: ripgrep, fd, bat, fzf, eza, delta, lazygit, fnm, jq, btop, git-lfs, direnv, atuin, zoxide, wget, obsidian, gh, python3, nodejs, uv, bun, rustup + cargo tools, fonts
+- **Shells**: bash, zsh, fish — consistent `commonAliases` let binding, same tool integrations
+- **Programs**: starship, direnv (with nix-direnv), zoxide, atuin, fzf, alacritty, vim, vscode, git
+- **Git**: GitAlias via `programs.git.includes`, global gitignore via `core.excludesFile`
+- **Symlinks**: `mkOutOfStoreSymlink` for nushell, ssh/config, starship.toml
 
-### Claude and Copilot configs (separate repos)
+### `nix/darwin-configuration.nix`
 
-These are NOT submodules. Clone them independently:
+macOS system settings + Homebrew module (`cleanup = "zap"` — only declared packages kept):
+- **brews**: screenresolution
+- **casks**: logitech-options, copilot-cli
 
-```sh
-# Claude Code
-git clone git@github.com:cdprice02/claude-config ~/.claude
-cp ~/.claude/profiles/work/settings.local.json.example ~/.claude/settings.local.json
-# (personal machines: profiles/personal/ once created)
+### VS Code
 
-# Copilot
-git clone git@github.com:cdprice02/copilot-config ~/.copilot
-```
-
-Sync them with `git -C ~/.claude pull` / `git -C ~/.copilot pull`.
+Binary managed by Nix. Extensions and settings managed entirely via GitHub Settings Sync — no `userSettings` or `extensions` declared in Nix.
 
 ### Symlinks managed by Home Manager
 
 | Symlink | Target |
 |---------|--------|
-| `~/.config/nushell` | `~/.dotfiles/nushell/` |
-| `~/.ssh/config` | `~/.dotfiles/ssh/config` |
+| `~/.config/nushell` | `~/.dotfiles/config/nushell/` |
+| `~/.ssh/config` | `~/.dotfiles/config/ssh/config` |
+| `~/.config/starship.toml` | `~/.dotfiles/config/nushell/starship.toml` |
 
-(On non-Nix machines `install-minimal.sh` creates these manually.)
+### Claude and Copilot configs (separate repos)
+
+These are NOT in this repo. Clone independently:
+
+```sh
+git clone git@github.com:cdprice02/claude-config ~/.claude
+git clone git@github.com:cdprice02/copilot-config ~/.copilot
+```
